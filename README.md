@@ -33,7 +33,7 @@ This project demonstrates a **modern data engineering solution** for processing 
                          ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      Google BigQuery                             │
-│  Project: mindful-pillar-426308-k1                               │
+│  Project: project-040088dd-8c9a-464e-96f.walmart_dwh.merchants_tb                              │
 │  Dataset: walmart_dwh                                            │
 │                                                                   │
 │  ┌─────────────────────────────────────────────────────────┐    │
