@@ -76,6 +76,69 @@ d) The BigQuery data warehoue where data is merged and upserted
 <img width="3094" height="1784" alt="image" src="https://github.com/user-attachments/assets/892fbeaf-0472-431f-8f76-1baa440e22b1" />
 
 
+
+## 🔄 Pipeline Workflow
+
+### DAG Execution Flow
+
+```
+Start
+  │
+  ▼
+┌──────────────────────┐
+│  create_dataset      │  Creates BigQuery dataset 'walmart_dwh'
+│  (if not exists)     │  Location: US
+└──────────┬───────────┘
+           │
+           ▼
+     ┌────────────┐
+     │  Parallel  │
+     │ Execution  │
+     └────────────┘
+           │
+     ┌─────┴─────┬─────────────────┬───────────────────┐
+     │           │                 │                   │
+     ▼           ▼                 ▼                   ▼
+┌─────────┐ ┌─────────┐ ┌──────────────┐ ┌──────────────┐
+│ create_ │ │ create_ │ │  create_     │ │              │
+│merchants│ │walmart_ │ │  target_     │ │              │
+│ _table  │ │sales_   │ │  table       │ │              │
+│         │ │ table   │ │              │ │              │
+└────┬────┘ └────┬────┘ └──────┬───────┘ └──────────────┘
+     │           │              │
+     └───────────┴──────────────┘
+                 │
+                 ▼
+        ┌────────────────┐
+        │   load_data    │  Task Group
+        │   (Parallel)   │
+        └────────────────┘
+                 │
+         ┌───────┴────────┐
+         │                │
+         ▼                ▼
+┌──────────────┐  ┌──────────────┐
+│gcs_to_bq_    │  │gcs_to_bq_    │
+│merchants     │  │walmart_sales │
+│              │  │              │
+│ GCS → BQ     │  │ GCS → BQ     │
+└──────┬───────┘  └──────┬───────┘
+       │                 │
+       └────────┬────────┘
+                │
+                ▼
+   ┌────────────────────────┐
+   │ merge_walmart_sales    │  UPSERT Operation
+   │                        │
+   │ • Join sales + merchant│
+   │ • UPDATE if exists     │
+   │ • INSERT if new        │
+   └────────────────────────┘
+                │
+                ▼
+              End
+```
+
 ### Data Flow
 
 1. **Source**: JSON files stored in GCS bucket (`bigquery_projects`)
@@ -87,38 +150,6 @@ d) The BigQuery data warehoue where data is merged and upserted
 
 ---
 
-### Business Use Cases
-
-- **Sales Analytics**: Track daily sales performance across merchants and products
-- **Merchant Intelligence**: Analyze merchant performance by category and geography
-- **Data Warehousing**: Centralized data repository for reporting and dashboards
-- **Real-time Updates**: Daily incremental loads ensure data freshness
-- **Historical Tracking**: Maintains audit trail with `last_update` timestamps
-
----
-
-## ✨ Features
-
-### Core Capabilities
-
-- ✅ **Automated Orchestration**: Scheduled daily execution with Apache Airflow
-- ✅ **Idempotent Operations**: Safe re-runs with `CREATE IF NOT EXISTS` and `WRITE_TRUNCATE`
-- ✅ **Incremental Loading**: UPSERT logic for efficient data updates
-- ✅ **Data Enrichment**: Automatic joining of sales with merchant dimensional data
-- ✅ **Error Handling**: Configurable retries and failure notifications
-- ✅ **Scalability**: Handles growing data volumes with GCS and BigQuery
-- ✅ **Task Grouping**: Organized workflow with logical task groups
-- ✅ **Audit Trail**: Timestamp tracking for data lineage
-
-### Technical Highlights
-
-- **Declarative Pipeline**: Infrastructure as Code (IaC) approach
-- **Cloud-Native**: Fully serverless architecture on GCP
-- **Version Control**: Git-based deployment and rollback
-- **Modular Design**: Reusable components and operators
-- **Standard SQL**: BigQuery Standard SQL for transformations
-
----
 
 ## 🛠️ Tech Stack
 
@@ -286,67 +317,6 @@ Production table with enriched sales data joined with merchant information.
 
 ---
 
-## 🔄 Pipeline Workflow
-
-### DAG Execution Flow
-
-```
-Start
-  │
-  ▼
-┌──────────────────────┐
-│  create_dataset      │  Creates BigQuery dataset 'walmart_dwh'
-│  (if not exists)     │  Location: US
-└──────────┬───────────┘
-           │
-           ▼
-     ┌────────────┐
-     │  Parallel  │
-     │ Execution  │
-     └────────────┘
-           │
-     ┌─────┴─────┬─────────────────┬───────────────────┐
-     │           │                 │                   │
-     ▼           ▼                 ▼                   ▼
-┌─────────┐ ┌─────────┐ ┌──────────────┐ ┌──────────────┐
-│ create_ │ │ create_ │ │  create_     │ │              │
-│merchants│ │walmart_ │ │  target_     │ │              │
-│ _table  │ │sales_   │ │  table       │ │              │
-│         │ │ table   │ │              │ │              │
-└────┬────┘ └────┬────┘ └──────┬───────┘ └──────────────┘
-     │           │              │
-     └───────────┴──────────────┘
-                 │
-                 ▼
-        ┌────────────────┐
-        │   load_data    │  Task Group
-        │   (Parallel)   │
-        └────────────────┘
-                 │
-         ┌───────┴────────┐
-         │                │
-         ▼                ▼
-┌──────────────┐  ┌──────────────┐
-│gcs_to_bq_    │  │gcs_to_bq_    │
-│merchants     │  │walmart_sales │
-│              │  │              │
-│ GCS → BQ     │  │ GCS → BQ     │
-└──────┬───────┘  └──────┬───────┘
-       │                 │
-       └────────┬────────┘
-                │
-                ▼
-   ┌────────────────────────┐
-   │ merge_walmart_sales    │  UPSERT Operation
-   │                        │
-   │ • Join sales + merchant│
-   │ • UPDATE if exists     │
-   │ • INSERT if new        │
-   └────────────────────────┘
-                │
-                ▼
-              End
-```
 
 ### Task Details
 
@@ -806,6 +776,40 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 - [ ] Partition tables by date for better performance
 - [ ] Add unit tests and integration tests
 - [ ] Create Terraform scripts for infrastructure
+
+---
+
+
+### Business Use Cases
+
+- **Sales Analytics**: Track daily sales performance across merchants and products
+- **Merchant Intelligence**: Analyze merchant performance by category and geography
+- **Data Warehousing**: Centralized data repository for reporting and dashboards
+- **Real-time Updates**: Daily incremental loads ensure data freshness
+- **Historical Tracking**: Maintains audit trail with `last_update` timestamps
+
+---
+
+## ✨ Features
+
+### Core Capabilities
+
+- ✅ **Automated Orchestration**: Scheduled daily execution with Apache Airflow
+- ✅ **Idempotent Operations**: Safe re-runs with `CREATE IF NOT EXISTS` and `WRITE_TRUNCATE`
+- ✅ **Incremental Loading**: UPSERT logic for efficient data updates
+- ✅ **Data Enrichment**: Automatic joining of sales with merchant dimensional data
+- ✅ **Error Handling**: Configurable retries and failure notifications
+- ✅ **Scalability**: Handles growing data volumes with GCS and BigQuery
+- ✅ **Task Grouping**: Organized workflow with logical task groups
+- ✅ **Audit Trail**: Timestamp tracking for data lineage
+
+### Technical Highlights
+
+- **Declarative Pipeline**: Infrastructure as Code (IaC) approach
+- **Cloud-Native**: Fully serverless architecture on GCP
+- **Version Control**: Git-based deployment and rollback
+- **Modular Design**: Reusable components and operators
+- **Standard SQL**: BigQuery Standard SQL for transformations
 
 ---
 
