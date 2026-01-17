@@ -2,39 +2,8 @@
 
 A production-ready, automated ETL pipeline that orchestrates Walmart sales data from Google Cloud Storage to BigQuery using Apache Airflow. This pipeline implements best practices for data warehousing, including staging tables, dimensional modeling, and incremental UPSERT operations.
 
-## 📑 Table of Contents
-
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Data Model](#data-model)
-- [Pipeline Workflow](#pipeline-workflow)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Monitoring](#monitoring)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## 🎯 Overview
-
 This project demonstrates a **modern data engineering solution** for processing retail sales data at scale. It automates the extraction, transformation, and loading (ETL) of Walmart sales transactions and merchant information, making the data readily available for business intelligence and analytics.
 
-### Business Use Cases
-
-- **Sales Analytics**: Track daily sales performance across merchants and products
-- **Merchant Intelligence**: Analyze merchant performance by category and geography
-- **Data Warehousing**: Centralized data repository for reporting and dashboards
-- **Real-time Updates**: Daily incremental loads ensure data freshness
-- **Historical Tracking**: Maintains audit trail with `last_update` timestamps
-
----
 
 ## 🏗️ Architecture
 
@@ -115,6 +84,16 @@ d) The BigQuery data warehoue where data is merged and upserted
 4. **Transformation**: SQL MERGE operation joins and enriches data
 5. **Target**: Final enriched dataset in `walmart_sales_tgt` table
 6. **Consumption**: BI tools query BigQuery for analytics
+
+---
+
+### Business Use Cases
+
+- **Sales Analytics**: Track daily sales performance across merchants and products
+- **Merchant Intelligence**: Analyze merchant performance by category and geography
+- **Data Warehousing**: Centralized data repository for reporting and dashboards
+- **Real-time Updates**: Daily incremental loads ensure data freshness
+- **Historical Tracking**: Maintains audit trail with `last_update` timestamps
 
 ---
 
